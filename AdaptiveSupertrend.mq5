@@ -134,3 +134,48 @@ void OnDeinit(const int reason) {
         }
     }
 }
+
+// supertend to plotting in chart
+void Supertrend(int currentBar,
+    const double &open[], const double &high[],
+    const double &close[], const double &low[], const datetime &time[]) {
+
+    // define static variable
+    static double prevUpperBand, prevLowerBand;
+    static int dir[2];
+
+    double atr = clustering(currentBar, atrBuffer);
+    double src = (high[currentBar] + low[currentBar]) / 2;
+    double upperBand = src + factors * atr;
+    double lowerBand = src - factors * atr;
+
+    double Max = high[currentBar] + ((high[currentBar]*95)/100);
+    double Min = low[currentBar] - ((close[currentBar]*95)/100);
+    bool checkUpBand = (upperBand > prevUpperBand && close[currentBar-1] < prevUpperBand) && !(upperBand < Min || upperBand > Max);
+    bool checkDnBand = (lowerBand < prevLowerBand && close[currentBar-1] > prevLowerBand) && !(lowerBand < Min || lowerBand > Max);
+    if (checkUpBand) {
+        upperBand = prevUpperBand;
+    }
+
+    if (checkDnBand) {
+        lowerBand = prevLowerBand;
+    }
+
+    // check direction
+    if (close[currentBar-1] > prevUpperBand) {
+        insertBegin(dir, 1, 2);
+    } else if(close[currentBar-1] < prevLowerBand) {
+        insertBegin(dir, -1, 2);
+    }
+
+    double supertrend = 0;
+    // insert value into buffer according direction
+    if (dir[0] != 0) {
+        if (dir[0] == 1) {
+            lowerLine[currentBar] = lowerBand;
+            supertrend = lowerBand;
+        } else {
+            upperLine[currentBar] = upperBand;
+            supertrend = upperBand;
+        }
+    }

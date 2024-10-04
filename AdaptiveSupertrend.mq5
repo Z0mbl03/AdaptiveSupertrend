@@ -273,3 +273,29 @@ double clustering(int currentBar, double const &volatility[]) {
 
     return(atr);
 }
+
+void trendLabel(const int currentBar, const int &dir[], const datetime &time[], double price) {
+    string name;
+    ENUM_OBJECT type;
+    color colrs;
+
+    if (dir[0] == 1) {
+        price = price - ((price*0.01)/100);
+        name = "UP"+IntegerToString(currentBar);
+        type = OBJ_ARROW_THUMB_UP;
+        colrs = clrLawnGreen;
+    } else {
+        price = price + ((price*0.02)/100);
+        name = "DN"+IntegerToString(currentBar);
+        type = OBJ_ARROW_THUMB_DOWN;
+        colrs = clrRed;
+    }
+
+
+    bool obj = ObjectCreate(0, name, type, 0, time[currentBar], price);
+    if (!obj) {
+        printf("failed to create arrow object. Error Code : %d", GetLastError());
+    }
+
+    ObjectSetInteger(0, name, OBJPROP_COLOR, colrs);
+}

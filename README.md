@@ -1,0 +1,1 @@
+The Adaptive Supertrend Indicator has been implemented in MQL5, based on the original code created by AlphaAlgo on TradingView. You can find the original source here: Machine Learning Adaptive SuperTrend AlgoAlpha.

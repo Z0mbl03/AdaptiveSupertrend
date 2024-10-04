@@ -179,3 +179,13 @@ void Supertrend(int currentBar,
             supertrend = upperBand;
         }
     }
+
+    // placing placing flag
+    if (dir[0] != dir[1]) {
+        trendLabel(currentBar, dir, time, supertrend);
+        insertBegin(dir, dir[0], 2);
+    }
+
+    prevUpperBand = upperBand;
+    prevLowerBand = lowerBand;
+}

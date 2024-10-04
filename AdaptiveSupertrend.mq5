@@ -299,3 +299,89 @@ void trendLabel(const int currentBar, const int &dir[], const datetime &time[], 
 
     ObjectSetInteger(0, name, OBJPROP_COLOR, colrs);
 }
+
+
+// 3 overload
+// insert double value at the begining array
+void insertBegin(double &src[], double values, int size) {
+    for (int i = size-1; i > 0; i--) {
+        src[i] = src[i-1];
+    }
+    src[0] = values;
+}
+
+// insert value at the beginning to dynamic array
+void insertBegin(double &src[], double values) {
+    int size = ArraySize(src)+1;
+    ArrayResize(src, size);
+    for (int i = size-1; i > 0; i--) {
+        src[i] = src[i-1];
+    }
+    src[0] = values;
+}
+
+// insert integer value at the beginning array
+void insertBegin(int &src[], int values, int size) {
+    for (int i = size-1; i > 0; i--) {
+        src[i] = src[i-1];
+    }
+    src[0] = values;
+}
+
+// Find max value in array
+double max(const double &src[], int start=0, int count=0) {
+    double max = src[start];
+    if (count == 0 ) {
+        count = ArraySize(src);
+    }
+
+    if (start == 0) {
+        for (; start < count; start++) {
+            if (src[start] > max) {
+                max = src[start];
+            }
+        }
+    } else {
+        int i = start;
+        for (; i > start-count; i--) {
+            if (src[i] > max) {
+                max = src[i];
+            }
+        }
+    }
+
+    return(max);
+}
+
+// Find min value in array
+double min(const double &src[], int start=0, int count=0) {
+    double min = src[start];
+    if (count == 0) {
+        count = ArraySize(src);
+    }
+    if (start == 0){
+        for (; start < count; start++) {
+            if (src[start] < min) {
+                min = src[start];
+            }
+        }
+    } else {
+        int i = start;
+        for (; i > start-count; i--) {
+            if (src[i] < min) {
+                min = src[i];
+            }
+        }
+    }
+
+    return(min);
+}
+
+// check data quality
+bool checkData(const double values) {
+    int len = StringLen(IntegerToString(values));
+    if ((int)values < 0 || StringLen((string)IntegerToString(values)) > len){
+        return(true); // true stop calculated and wait for new data
+    }
+    return(false); // false continue calculated data
+}

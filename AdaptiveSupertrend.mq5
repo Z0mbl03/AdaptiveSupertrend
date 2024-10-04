@@ -189,3 +189,87 @@ void Supertrend(int currentBar,
     prevUpperBand = upperBand;
     prevLowerBand = lowerBand;
 }
+
+double clustering(int currentBar, double const &volatility[]) {
+    // initialize cluster and distance array
+    double distance[3], centroids[3];
+
+    // Determine volatility band based on hstorical data
+    double upper = max(volatility, currentBar, trainingDataPeriod);
+    double lower = min(volatility, currentBar, trainingDataPeriod);
+
+    // Define treshold for High, Medium and Low Volatility
+    double high = lower + (upper - lower) * highVol;
+    double medium = lower + (upper - lower) * midVol;
+    double low = lower + (upper - lower) * lowVol;
+
+    double A[2] = {high, 0};
+    double B[2] = {medium, 0};
+    double C[2] = {low, 0};
+
+    while (A[0] != A[1] || B[0] != B[1] || C[0] != C[1]) {
+        // check is there any data broke
+        if (checkData(A[0])) {
+            printf("Bad data ! A ; %f", A[0]);
+            // A[0] = volatility[currentBar-1];
+            break;
+        } else if (checkData(B[0])) {
+            printf("Bad data ! B : %f", B[0]);
+            // B[0] = volatility[currentBar-1];
+            break;
+        } else if (checkData(C[0])) {
+            printf("Bad data ! C : %f",C[0]);
+            // C[0] = volatility[currentBar-1];
+            break;
+        }
+
+        // Initialize High, Medium and Low dynamic array to store volatility for each cluster
+        double hv[];
+        double mv[];
+        double lv[];
+        int index = currentBar;
+        for (; index > (currentBar - trainingDataPeriod); index--) {
+            if (checkData(volatility[index])) {
+                printf("Bad data quality");
+                continue;
+            }
+
+            double a = MathAbs(volatility[index] - A[0]);
+            double b = MathAbs(volatility[index] - B[0]);
+            double c = MathAbs(volatility[index] - C[0]);
+
+            if (a < b && a < c) {
+                // Insert volatility[index] value at the beginning hv array
+                insertBegin(hv, volatility[index]);
+            }
+
+            if (b < a && b < c) {
+                // Insert volatility[index] value at the beginning mv array
+                insertBegin(mv, volatility[index]);
+            }
+
+            if (c < a && c < b) {
+                // Insert volatility[index] value at the beginning array
+                insertBegin(lv, volatility[index]);
+            }
+        }
+
+        // Insert average hv, mv, lv to beginning array of each cluste
+        insertBegin(A, MathMean(hv), ArraySize(A));
+        insertBegin(B, MathMean(mv), ArraySize(B));
+        insertBegin(C, MathMean(lv), ArraySize(C));
+    }
+
+    distance[0] = MathAbs(volatility[currentBar] - A[0]);
+    distance[1] = MathAbs(volatility[currentBar] - B[0]);
+    distance[2] = MathAbs(volatility[currentBar] - C[0]);
+
+    centroids[0] = A[0];
+    centroids[1] = B[0];
+    centroids[2] = C[0];
+
+    int cluster = ArrayMinimum(distance);
+    double atr = centroids[cluster];
+
+    return(atr);
+}

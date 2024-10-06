@@ -25,6 +25,7 @@
 
 // Import math library
 #include <Math/Stat/Normal.mqh>
+#include <EntryLabel.mqh>
 
 // deine property Indicator
 #property indicator_chart_window
@@ -96,14 +97,16 @@ int OnCalculate(const int rates_total, const int prev_calculated, const datetime
     int current = prev_calculated;
     for (; current < rates_total-1; current++) {
         // avoid array out of range
-        if (current > rates_total - (rates_total/4)) {
+        if (current > rates_total - ((rates_total*10)/100)) {
             // exec function for calculation indicator to add
             Supertrend(current, open, high, close, low, time);
+            entryPoint(current, open, close, time, lowerLine[current], upperLine[current]);
         }
     }
 
     // fill buffer with `rates_total-1
     Supertrend(rates_total-1, open, high, close, low, time);
+    entryPoint(rates_total-1, open, close, time, lowerLine[rates_total-1], upperLine[rates_total-1]);
     return(rates_total);
 }
 
@@ -125,8 +128,9 @@ void OnDeinit(const int reason) {
             printf("Clear buffer success !!");
         }
 
-        int delUp = ObjectsDeleteAll(0, "UP*", 0, -1);
-        int delDn = ObjectsDeleteAll(0, "DN*", 0, -1);
+        delObj();
+        int delUp = ObjectsDeleteAll(0, "UP*");
+        int delDn = ObjectsDeleteAll(0, "DN*");
         if (delUp > 0 && delDn > 0) {
             printf("All object deleted !");
         } else {
@@ -182,7 +186,7 @@ void Supertrend(int currentBar,
 
     // placing placing flag
     if (dir[0] != dir[1]) {
-        trendLabel(currentBar, dir, time, supertrend);
+        trendLabel(currentBar, dir[0], time, supertrend);
         insertBegin(dir, dir[0], 2);
     }
 
@@ -274,21 +278,27 @@ double clustering(int currentBar, double const &volatility[]) {
     return(atr);
 }
 
-void trendLabel(const int currentBar, const int &dir[], const datetime &time[], double price) {
+void trendLabel(const int currentBar, const int dir, const datetime &time[], double price) {
+    // avoid create label if direction is 0
+    if (dir == 0) {return;}
+
     string name;
     ENUM_OBJECT type;
     color colrs;
+    ENUM_ARROW_ANCHOR anchor;
 
-    if (dir[0] == 1) {
-        price = price - ((price*0.01)/100);
+    if (dir == 1) {
+        price = price - ((price*0.02)/100);
         name = "UP"+IntegerToString(currentBar);
         type = OBJ_ARROW_THUMB_UP;
         colrs = clrLawnGreen;
+        anchor = ANCHOR_TOP;
     } else {
         price = price + ((price*0.02)/100);
         name = "DN"+IntegerToString(currentBar);
         type = OBJ_ARROW_THUMB_DOWN;
         colrs = clrRed;
+        anchor = ANCHOR_BOTTOM;
     }
 
 
@@ -298,6 +308,8 @@ void trendLabel(const int currentBar, const int &dir[], const datetime &time[], 
     }
 
     ObjectSetInteger(0, name, OBJPROP_COLOR, colrs);
+    ObjectSetInteger(0, name, OBJPROP_ANCHOR, anchor);
+    ObjectSetInteger(0, name, OBJPROP_WIDTH, 3);
 }
 
 
